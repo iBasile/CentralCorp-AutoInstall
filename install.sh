@@ -2,10 +2,8 @@
 
 # site:
 #     type: php
-#     path: '{INSTALL_PATH_RELATIVE}/www'
+#     path: '{INSTALL_PATH_RELATIVE}'
 #     php_version: '8.3'
-# database:
-#     type: mysql
 # requirements:
 #     disk: 50
 # form:
@@ -23,19 +21,25 @@
 
 set -e
 
-# Création du dossier www si inexistant
-mkdir -p "$INSTALL_PATH/www"
+cd "$INSTALL_PATH"
 
-cd "$INSTALL_PATH/www"
+# Téléchargement avec fallback curl
+if command -v wget > /dev/null; then
+    wget -q -O installer.zip "https://github.com/CentralCorp/Installer/releases/latest/download/installer.zip"
+elif command -v curl > /dev/null; then
+    curl -L -o installer.zip "https://github.com/CentralCorp/Installer/releases/latest/download/installer.zip"
+else
+    echo "Erreur : wget ou curl requis."
+    exit 1
+fi
 
-# Téléchargement de l'archive
-wget -O installer.zip "https://github.com/CentralCorp/Installer/releases/latest/download/installer.zip"
-
-# Extraction directement dans www
-unzip installer.zip
-
-# Suppression de l'archive
+# Extraction directe dans INSTALL_PATH
+unzip -oq installer.zip
 rm installer.zip
 
-# Ajustement des permissions (sécurisé)
-chmod -R 755 "$INSTALL_PATH/www"
+chmod -R 755 "$INSTALL_PATH"
+
+cd "$HOME"
+rm -rf .config .local .subversion
+
+echo "Installation terminée avec succès."
